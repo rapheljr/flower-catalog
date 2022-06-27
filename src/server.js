@@ -1,7 +1,7 @@
 const { createServer } = require('net');
 const { parseRequest } = require('./parser.js');
 const { Response } = require('./response.js');
-const { serveFileContents } = require('./handlers.js');
+const { serveFileContents, commentsHandler } = require('./handlers.js');
 
 const handle = (request, response, path) => {
   for (const handler of handlers) {
@@ -21,7 +21,7 @@ const onConnection = (socket, path) => {
   });
 };
 
-const handlers = [serveFileContents];
+const handlers = [commentsHandler, serveFileContents];
 
 const startServer = (PORT, path) => {
   const server = createServer((socket) => {

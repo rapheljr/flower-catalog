@@ -2,10 +2,11 @@
 
 - [ ] Refer README.md
 - [ ] Look up todo frequently
-- [ ] Add backward button
-- [ ] Add comment saving
+- [ ] Refactor code
 
 **DONE**
+- [x] Add comment saving
+- [x] Add backward button
 - [x] Connect server
 - [x] Make response class
 - [x] Make abeliophyllum Page

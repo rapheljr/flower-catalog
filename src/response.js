@@ -54,7 +54,7 @@ class Response {
     this.#writeHeaders();
     this.#write(EOL);
     this.#write(body);
-    this.#end();
+    // this.#end();
   }
 
 }
