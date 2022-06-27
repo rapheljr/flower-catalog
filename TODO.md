@@ -2,9 +2,10 @@
 
 - [ ] Refer README.md
 - [ ] Look up todo frequently
-- [ ] Make abeliophyllum Page
-- [ ] Make ageratum Page
-- [ ] Make guess book Page
+- [ ] Connect server
 
 **DONE**
+- [x] Make abeliophyllum Page
+- [x] Make ageratum Page
+- [x] Make guess book Page
 - [x] Make Home Page

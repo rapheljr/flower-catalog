@@ -1,0 +1,33 @@
+* {
+  /* padding: auto; */
+  /* margin: auto; */
+}
+
+.heading {
+  text-align: center;
+  border-bottom: 1px solid black;
+}
+
+.orange {
+  color: orange;
+}
+
+.content {
+  display: flex;
+  padding: 1em;
+}
+
+.links {
+  padding: 1em;
+  position: relative;
+  top: 250px;
+}
+
+.form {
+  padding: 1em;
+  border-bottom: 1px solid black;
+}
+
+.comments {
+  border-bottom: 1px solid black;
+}
