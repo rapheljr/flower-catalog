@@ -58,7 +58,6 @@ const makeContent = (fileName) => {
   const content = fs.readFileSync(fileName, 'utf-8');
   const comments = commentsMaker();
   const html = content.replace('_COMMENTS_', comments);
-  // console.log('here', html);
   return html;
 };
 

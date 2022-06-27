@@ -17,11 +17,14 @@ const onConnection = (socket, path) => {
   socket.on('data', (chunk) => {
     const response = new Response(socket);
     const request = parseRequest(chunk);
-    handle(request, response, path);
+    const { method } = request;
+    if (method === 'GET') {
+      handle(request, response, path);
+    }
   });
 };
 
-const handlers = [commentsHandler, serveFileContents];
+const handlers = [serveFileContents, commentsHandler];
 
 const startServer = (PORT, path) => {
   const server = createServer((socket) => {
