@@ -2,9 +2,11 @@
 
 - [ ] Refer README.md
 - [ ] Look up todo frequently
-- [ ] Connect server
+- [ ] Add backward button
+- [ ] Add comment saving
 
 **DONE**
+- [x] Connect server
 - [x] Make response class
 - [x] Make abeliophyllum Page
 - [x] Make ageratum Page
