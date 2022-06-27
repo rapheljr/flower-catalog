@@ -1,0 +1,26 @@
+* {
+  /* padding: auto; */
+  /* margin: auto; */
+}
+
+.heading {
+  text-align: center;
+  font-family: sans-serif;
+  border-bottom: 1px solid black;
+}
+
+.subheading {
+  text-align: right;
+  color: orange;
+  border-bottom: 1px solid black;
+}
+
+.content {
+  display: flex;
+  padding: 1em;
+}
+
+.links {
+  position: relative;
+  top: 250px;
+}
