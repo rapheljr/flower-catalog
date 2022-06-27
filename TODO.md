@@ -5,7 +5,8 @@
 - [ ] Connect server
 
 **DONE**
+- [x] Make response class
 - [x] Make abeliophyllum Page
 - [x] Make ageratum Page
-- [x] Make guess book Page
+- [x] Make guest book Page
 - [x] Make Home Page
