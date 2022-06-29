@@ -58,4 +58,11 @@ const makeContent = (file) => {
   return html;
 };
 
-module.exports = { serveFileContents, commentsHandler };
+const notFoundHandler = ({ url }, res) => {
+  const { pathname } = url;
+  res.statusCode = 404;
+  res.end(pathname + ' not found');
+  return true;
+};
+
+module.exports = { serveFileContents, commentsHandler, notFoundHandler };
