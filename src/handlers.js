@@ -30,6 +30,15 @@ const readComment = () => {
   return comments.toHtmlTable();
 };
 
+const filterComments = (user, comment) => {
+  const comments = new Comments('./data/comments.json');
+  const filtered = comments.getComments().filter(({ name, text }) => {
+    return name.includes(user) || text.includes(comment);
+  }
+  );
+  return JSON.stringify(filtered);
+};
+
 const redirect = (res) => {
   const file = '/guest-book.html';
   res.statusCode = 302;
@@ -37,11 +46,26 @@ const redirect = (res) => {
   res.setHeader('Content-Type', mime.lookup(file));
 };
 
+const getParams = (searchParams) => {
+  const name = searchParams.get('name');
+  const comment = searchParams.get('comment');
+  return [name, comment];
+};
+
+const apiHandler = ({ url }, res) => {
+  const { searchParams, pathname } = url;
+  if (pathname === '/api') {
+    const [name, comment] = getParams(searchParams);
+    res.end(filterComments(name, comment));
+    return true;
+  }
+  return false;
+};
+
 const commentsHandler = ({ url }, res) => {
   const { searchParams, pathname } = url;
   if (pathname === '/guest-book.html') {
-    const name = searchParams.get('name');
-    const comment = searchParams.get('comment');
+    const [name, comment] = getParams(searchParams);
     if (name && comment) {
       writeComment(name, comment);
       redirect(res);
@@ -65,4 +89,7 @@ const notFoundHandler = ({ url }, res) => {
   return true;
 };
 
-module.exports = { serveFileContents, commentsHandler, notFoundHandler };
+module.exports = {
+  serveFileContents, commentsHandler,
+  apiHandler, notFoundHandler
+};
