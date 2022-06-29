@@ -1,21 +1,23 @@
 const fs = require('fs');
 const { Comments } = require('./comments.js');
+const mime = require('mime-types');
 
-const serveFile = (fileName, response) => {
-  if (fs.existsSync(fileName)) {
-    const content = fs.readFileSync(fileName);
-    response.end(content);
+const serveFile = (file, res) => {
+  if (fs.existsSync(file)) {
+    const content = fs.readFileSync(file);
+    res.setHeader('Content-Type', mime.lookup(file));
+    res.end(content);
     return true;
   }
   return false;
 };
 
-const serveFileContents = (request, response, path = './public') => {
-  let { pathname } = request.url;
+const serveFileContents = (req, res, path = './public') => {
+  let { pathname } = req.url;
   if (pathname === '/') {
     pathname = '/home.html';
   }
-  return serveFile(path + pathname, response);
+  return serveFile(path + pathname, res);
 };
 
 const writeComment = (name, text) => {
@@ -29,17 +31,19 @@ const readComment = () => {
 };
 
 const redirect = (res) => {
+  const file = '/guest-book.html';
   res.statusCode = 302;
-  res.setHeader('Location', '/guest-book.html');
+  res.setHeader('Location', file);
+  res.setHeader('Content-Type', mime.lookup(file));
 };
 
 const commentsHandler = ({ url }, res) => {
   const { searchParams, pathname } = url;
-  const name = searchParams.get('name');
-  const comment = searchParams.get('comment');
-  writeComment(name, comment);
   if (pathname === '/guest-book.html') {
+    const name = searchParams.get('name');
+    const comment = searchParams.get('comment');
     if (name && comment) {
+      writeComment(name, comment);
       redirect(res);
     }
     res.end(makeContent('./public' + pathname));
@@ -48,8 +52,8 @@ const commentsHandler = ({ url }, res) => {
   return false;
 };
 
-const makeContent = (fileName) => {
-  const content = fs.readFileSync(fileName, 'utf-8');
+const makeContent = (file) => {
+  const content = fs.readFileSync(file, 'utf-8');
   const html = content.replaceAll('_COMMENTS_', readComment());
   return html;
 };

@@ -8,7 +8,7 @@ class Comments {
 
   #addToFile(comment) {
     const comments = JSON.parse(fs.readFileSync(this.#file, 'utf-8'));
-    comments.push(comment);
+    comments.unshift(comment);
     fs.writeFileSync(this.#file, JSON.stringify(comments), 'utf-8');
   }
 

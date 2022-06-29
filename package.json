@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha",
+    "start": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -19,5 +20,9 @@
   "bugs": {
     "url": "https://github.com/rapheljr/flower-catalog/issues"
   },
-  "homepage": "https://github.com/rapheljr/flower-catalog#readme"
+  "homepage": "https://github.com/rapheljr/flower-catalog#readme",
+  "dependencies": {
+    "mime-types": "^2.1.35",
+    "nodemon": "^2.0.18"
+  }
 }
