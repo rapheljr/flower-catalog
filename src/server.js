@@ -1,38 +1,22 @@
-const { createServer } = require('net');
-const { parseRequest } = require('./parser.js');
-const { Response } = require('./response.js');
-const { serveFileContents, commentsHandler } = require('./handlers.js');
+const http = require('http');
 
-const handle = (request, response, path) => {
-  for (const handler of handlers) {
-    if (handler(request, response, path)) {
-      return true;
+const handle = (handlers) => {
+  return (req, res) => {
+    req.url = new URL(req.url, `http://${req.headers.host}`);
+    for (const handler of handlers) {
+      if (handler(req, res)) {
+        return true;
+      }
     }
-  }
-  return false;
+    return false;
+  };
 };
 
-const onConnection = (socket, path) => {
-  socket.setEncoding('utf-8');
-  socket.on('data', (chunk) => {
-    const response = new Response(socket);
-    const request = parseRequest(chunk);
-    const { method } = request;
-    if (method === 'GET') {
-      handle(request, response, path);
-    }
-  });
-};
-
-const handlers = [serveFileContents, commentsHandler];
-
-const startServer = (PORT, path) => {
-  const server = createServer((socket) => {
-    onConnection(socket, path);
-  });
+const startServer = (PORT, handlers) => {
+  const server = http.createServer(handlers);
   server.listen(PORT, () => {
     console.log(`Listening to port ${PORT}`);
   });
 };
 
-module.exports = { startServer };
+module.exports = { startServer, handle };

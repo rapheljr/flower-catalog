@@ -33,3 +33,11 @@
 .comments {
   border-bottom: 1px solid black;
 }
+
+table {
+  padding: 1em;
+}
+
+td {
+  padding: .5em;
+}
