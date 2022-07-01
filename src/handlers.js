@@ -62,14 +62,24 @@ const apiHandler = ({ url }, res, next) => {
   return next();
 };
 
-const commentsHandler = ({ url }, res, next) => {
-  const { searchParams, pathname } = url;
-  console.log(pathname, url);
+const handleComments = (req) => {
+  let data = '';
+  req.on('data', (chunk) => {
+    data += chunk;
+  });
+  req.on('end', () => {
+    const bodyParams = new URLSearchParams(data);
+    const [name, comment] = getParams(bodyParams);
+    writeComment(name, comment);
+  });
+};
+
+const guestBookHandler = (req, res, next) => {
+  const { pathname } = req.url;
+  const { method } = req;
   if (pathname === '/guest-book.html') {
-    // console.log('comments');
-    const [name, comment] = getParams(searchParams);
-    if (name && comment) {
-      writeComment(name, comment);
+    if (method === 'POST') {
+      handleComments(req, res);
       redirect(res);
     }
     res.end(makeContent('./public' + pathname));
@@ -92,6 +102,6 @@ const notFoundHandler = ({ url }, res) => {
 };
 
 module.exports = {
-  serveFileContents, commentsHandler,
+  serveFileContents, guestBookHandler,
   apiHandler, notFoundHandler
 };
