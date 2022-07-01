@@ -4,9 +4,10 @@ const mime = require('mime-types');
 
 const serveFile = (file, res, next) => {
   if (fs.existsSync(file)) {
-    const content = fs.readFileSync(file);
-    res.setHeader('Content-Type', mime.lookup(file));
-    res.end(content);
+    fs.readFile(file, (error, content) => {
+      res.setHeader('Content-Type', mime.lookup(file));
+      res.end(content);
+    });
     return true;
   }
   return next();
