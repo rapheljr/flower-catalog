@@ -5,6 +5,15 @@
   <title>Flower catalog</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
+<script>
+  const hide = () => {
+    const gif = document.getElementById('gif');
+    gif.hidden = true;
+    setTimeout(() => {
+      gif.hidden = false;
+    }, 1000);
+  }
+</script>
 
 <body>
   <div class="heading orange">
@@ -21,7 +30,7 @@
           <a href="ageratum.html">Ageratum</a>
         </li>
       </ul>
-      <img src="img/animated-flower-image-0021.gif" alt="watering bottle">
+      <img id="gif" onclick="hide()" src="img/animated-flower-image-0021.gif" alt="watering bottle">
       <a href="guest-book.html">Guest Book</a>
     </div>
   </div>
