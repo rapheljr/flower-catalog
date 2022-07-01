@@ -23,6 +23,7 @@
   "homepage": "https://github.com/rapheljr/flower-catalog#readme",
   "dependencies": {
     "mime-types": "^2.1.35",
-    "nodemon": "^2.0.18"
+    "nodemon": "^2.0.18",
+    "server": "github:rapheljr/my-server"
   }
 }

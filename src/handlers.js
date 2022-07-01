@@ -2,22 +2,22 @@ const fs = require('fs');
 const { Comments } = require('./comments.js');
 const mime = require('mime-types');
 
-const serveFile = (file, res) => {
+const serveFile = (file, res, next) => {
   if (fs.existsSync(file)) {
     const content = fs.readFileSync(file);
     res.setHeader('Content-Type', mime.lookup(file));
     res.end(content);
     return true;
   }
-  return false;
+  return next();
 };
 
-const serveFileContents = (req, res, path = './public') => {
+const serveFileContents = (req, res, next, path = './public') => {
   let { pathname } = req.url;
   if (pathname === '/') {
     pathname = '/home.html';
   }
-  return serveFile(path + pathname, res);
+  return serveFile(path + pathname, res, next);
 };
 
 const writeComment = (name, text) => {
@@ -52,19 +52,21 @@ const getParams = (searchParams) => {
   return [name, comment];
 };
 
-const apiHandler = ({ url }, res) => {
+const apiHandler = ({ url }, res, next) => {
   const { searchParams, pathname } = url;
   if (pathname === '/api') {
     const [name, comment] = getParams(searchParams);
     res.end(filterComments(name, comment));
     return true;
   }
-  return false;
+  return next();
 };
 
-const commentsHandler = ({ url }, res) => {
+const commentsHandler = ({ url }, res, next) => {
   const { searchParams, pathname } = url;
+  console.log(pathname, url);
   if (pathname === '/guest-book.html') {
+    // console.log('comments');
     const [name, comment] = getParams(searchParams);
     if (name && comment) {
       writeComment(name, comment);
@@ -73,7 +75,7 @@ const commentsHandler = ({ url }, res) => {
     res.end(makeContent('./public' + pathname));
     return true;
   }
-  return false;
+  return next();
 };
 
 const makeContent = (file) => {
