@@ -13,47 +13,35 @@ const serveFile = (file, res, next) => {
   return next();
 };
 
-const cookieParser = (cookie) => {
-  const cookies = {};
-  if (!cookie) {
-    return;
-  }
-  cookie.split(';').forEach(cookieString => {
-    const [name, value] = cookieString.split('=');
-    cookies[name.trim()] = value.trim();
-  });
-  return cookies;
-};
-
-const sessions = {
-
-};
-
-const handleLogin = (req, res) => {
+const bodyParser = (req, res, next) => {
   let data = '';
-  req.on('data', (chunk) => {
-    data += chunk;
-  });
+  req.setEncoding('utf-8');
+  req.on('data', (chunk) => data += chunk);
   req.on('end', () => {
-    const bodyParams = new URLSearchParams(data);
-    const [name] = getParams(bodyParams);
-    console.log(name);
-    setCookie(req, res, name);
-    res.end(makeContent('./public/guest-book.html', name));
+    req.bodyParams = new URLSearchParams(data);
+    return next();
   });
 };
-
-// const injectSection = (req, res, next) => {
-//   return next();
-// };
 
 const loginHandler = (req, res, next) => {
   const { pathname } = req.url;
   const { method } = req;
   if (pathname === '/login') {
     if (method === 'POST') {
-      handleLogin(req, res);
+      const { id } = createSession(req);
+      setCookie(res, id);
+      redirectPage(res, '/guest-book.html');
     }
+    return true;
+  }
+  return next();
+};
+
+const logoutHandler = (req, res, next) => {
+  const { pathname } = req.url;
+  if (pathname === '/logout') {
+    res.setHeader('set-cookie', 'id=0;max-age=0');
+    redirectPage(res, '/');
     return true;
   }
   return next();
@@ -86,23 +74,17 @@ const filterComments = (user, comment) => {
   return JSON.stringify(filtered);
 };
 
-const redirectGuest = (res) => {
-  const file = '/guest-book.html';
+const redirectPage = (res, page) => {
   res.statusCode = 302;
-  res.setHeader('Location', file);
-  res.setHeader('Content-Type', mime.lookup(file));
+  res.setHeader('Location', page);
+  res.setHeader('Content-Type', mime.lookup(page));
+  res.end();
+  return true;
 };
 
-const redirectLogin = (res) => {
-  const file = '/login.html';
-  res.statusCode = 302;
-  res.setHeader('Location', file);
-  res.setHeader('Content-Type', mime.lookup(file));
-};
-
-const getParams = (searchParams) => {
-  const name = searchParams.get('name');
-  const comment = searchParams.get('comment');
+const getParams = (params) => {
+  const name = params.get('name');
+  const comment = params.get('comment');
   return [name, comment];
 };
 
@@ -117,25 +99,26 @@ const apiHandler = ({ url }, res, next) => {
 };
 
 const handleComments = (req) => {
-  let data = '';
-  req.on('data', (chunk) => {
-    data += chunk;
-  });
-  req.on('end', () => {
-    const bodyParams = new URLSearchParams(data);
-    const [name, comment] = getParams(bodyParams);
-    console.log(req.cookies.name, comment);
-    writeComment(req.cookies.name, comment);
-  });
+  const comment = req.bodyParams.get('comment');
+  const { name } = req.session;
+  console.log(name, comment);
+  writeComment(name, comment);
 };
 
-const addComments = (req, res) => {
-  if (req.cookies) {
-    handleComments(req, res);
-    redirectGuest(res);
-  } else {
-    redirectLogin(res);
+const handleSession = (req, res, next) => {
+  const { pathname } = req.url;
+  const { method } = req;
+  if (pathname === '/guest-book.html') {
+    if (method === 'POST') {
+      handleComments(req, res);
+    } else {
+      return redirectPage(res, '/login.html');
+    }
+    const { name } = req.session;
+    res.end(makeContent('./public' + pathname, name));
+    return true;
   }
+  return next();
 };
 
 const guestBookHandler = (req, res, next) => {
@@ -144,13 +127,12 @@ const guestBookHandler = (req, res, next) => {
   if (pathname === '/guest-book.html') {
     if (method === 'POST') {
       handleComments(req, res);
-      redirectGuest(res);
-      res.end(makeContent('./public' + pathname, req.cookies.name));
-    } else if (req.cookies) {
-      res.end(makeContent('./public' + pathname, req.cookies.name));
+      redirectPage(res, '/guest-book.html');
+    } else if (req.session) {
+      const { name } = req.session;
+      res.end(makeContent('./public' + pathname, name));
     } else {
-      redirectLogin(res);
-      res.end();
+      redirectPage(res, '/login.html');
     }
     return true;
   }
@@ -171,30 +153,62 @@ const notFoundHandler = ({ url }, res) => {
   return true;
 };
 
-// const getCookie = () => {
-//   sessions[]
-// };
+const sessions = {};
 
-const setCookie = (req, res, name) => {
-  if (req.cookies) {
-    return;
+const createSession = (req) => {
+  const name = req.bodyParams.get('name');
+  const time = new Date();
+  const id = time.getTime();
+
+  const session = { name, id, time };
+  sessions[id] = session;
+  return session;
+};
+
+const injectSession = (req, res, next) => {
+  const { id } = req.cookies;
+  if (!id) {
+    return next();
   }
-  res.setHeader('set-cookie', 'name=' + name);
+  req.session = sessions[id];
+  return next();
+};
+
+const cookieParser = (cookie) => {
+  const cookies = {};
+  if (!cookie) {
+    return cookies;
+  }
+  cookie.split(';').forEach(cookieString => {
+    const [name, value] = cookieString.split('=');
+    cookies[name.trim()] = value.trim();
+  });
+  return cookies;
+};
+
+const getName = (req) => {
+  console.log(sessions, req.cookies.id);
+  return sessions[req.cookies.id].name;
+};
+
+const setCookie = (res, id) => {
+  res.setHeader('set-cookie', 'id=' + id);
   return true;
 };
 
 const injectCookies = (req, res, next) => {
   req.cookies = cookieParser(req.headers.cookie);
-  console.log(req.cookies);
   return next();
 };
 
 const log = (req, res, next) => {
-  // console.log(req.url);
+  console.log(req.bodyParams, 'bodyParams');
+  console.log(req.cookies, 'cookies');
+  console.log(sessions, 'sessions');
   return next();
 };
 
 module.exports = {
-  serveFileContents, guestBookHandler, injectCookies, setCookie,
-  apiHandler, notFoundHandler, loginHandler, log
+  serveFileContents, guestBookHandler, injectSession, bodyParser, injectCookies, setCookie, handleSession,
+  apiHandler, notFoundHandler, loginHandler, logoutHandler, log
 };
