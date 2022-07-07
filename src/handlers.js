@@ -13,6 +13,52 @@ const serveFile = (file, res, next) => {
   return next();
 };
 
+const cookieParser = (cookie) => {
+  const cookies = {};
+  if (!cookie) {
+    return;
+  }
+  cookie.split(';').forEach(cookieString => {
+    const [name, value] = cookieString.split('=');
+    cookies[name.trim()] = value.trim();
+  });
+  return cookies;
+};
+
+const sessions = {
+
+};
+
+const handleLogin = (req, res) => {
+  let data = '';
+  req.on('data', (chunk) => {
+    data += chunk;
+  });
+  req.on('end', () => {
+    const bodyParams = new URLSearchParams(data);
+    const [name] = getParams(bodyParams);
+    console.log(name);
+    setCookie(req, res, name);
+    res.end(makeContent('./public/guest-book.html', name));
+  });
+};
+
+// const injectSection = (req, res, next) => {
+//   return next();
+// };
+
+const loginHandler = (req, res, next) => {
+  const { pathname } = req.url;
+  const { method } = req;
+  if (pathname === '/login') {
+    if (method === 'POST') {
+      handleLogin(req, res);
+    }
+    return true;
+  }
+  return next();
+};
+
 const serveFileContents = (req, res, next, path = './public') => {
   let { pathname } = req.url;
   if (pathname === '/') {
@@ -40,8 +86,15 @@ const filterComments = (user, comment) => {
   return JSON.stringify(filtered);
 };
 
-const redirect = (res) => {
+const redirectGuest = (res) => {
   const file = '/guest-book.html';
+  res.statusCode = 302;
+  res.setHeader('Location', file);
+  res.setHeader('Content-Type', mime.lookup(file));
+};
+
+const redirectLogin = (res) => {
+  const file = '/login.html';
   res.statusCode = 302;
   res.setHeader('Location', file);
   res.setHeader('Content-Type', mime.lookup(file));
@@ -71,8 +124,18 @@ const handleComments = (req) => {
   req.on('end', () => {
     const bodyParams = new URLSearchParams(data);
     const [name, comment] = getParams(bodyParams);
-    writeComment(name, comment);
+    console.log(req.cookies.name, comment);
+    writeComment(req.cookies.name, comment);
   });
+};
+
+const addComments = (req, res) => {
+  if (req.cookies) {
+    handleComments(req, res);
+    redirectGuest(res);
+  } else {
+    redirectLogin(res);
+  }
 };
 
 const guestBookHandler = (req, res, next) => {
@@ -81,17 +144,23 @@ const guestBookHandler = (req, res, next) => {
   if (pathname === '/guest-book.html') {
     if (method === 'POST') {
       handleComments(req, res);
-      redirect(res);
+      redirectGuest(res);
+      res.end(makeContent('./public' + pathname, req.cookies.name));
+    } else if (req.cookies) {
+      res.end(makeContent('./public' + pathname, req.cookies.name));
+    } else {
+      redirectLogin(res);
+      res.end();
     }
-    res.end(makeContent('./public' + pathname));
     return true;
   }
   return next();
 };
 
-const makeContent = (file) => {
+const makeContent = (file, name) => {
   const content = fs.readFileSync(file, 'utf-8');
-  const html = content.replaceAll('_COMMENTS_', readComment());
+  let html = content.replaceAll('_COMMENTS_', readComment());
+  html = html.replaceAll('_USER_', name);
   return html;
 };
 
@@ -102,7 +171,30 @@ const notFoundHandler = ({ url }, res) => {
   return true;
 };
 
+// const getCookie = () => {
+//   sessions[]
+// };
+
+const setCookie = (req, res, name) => {
+  if (req.cookies) {
+    return;
+  }
+  res.setHeader('set-cookie', 'name=' + name);
+  return true;
+};
+
+const injectCookies = (req, res, next) => {
+  req.cookies = cookieParser(req.headers.cookie);
+  console.log(req.cookies);
+  return next();
+};
+
+const log = (req, res, next) => {
+  // console.log(req.url);
+  return next();
+};
+
 module.exports = {
-  serveFileContents, guestBookHandler,
-  apiHandler, notFoundHandler
+  serveFileContents, guestBookHandler, injectCookies, setCookie,
+  apiHandler, notFoundHandler, loginHandler, log
 };
