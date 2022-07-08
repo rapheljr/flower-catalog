@@ -4,6 +4,7 @@
 <head>
   <title>Flower catalog</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="guest-book.js"></script>
 </head>
 
 <body>
@@ -20,10 +21,11 @@
     <form action="guest-book.html" method="post">
       <div>
         <label for="name">Comment:</label>
-        <textarea name="comment" id="" cols="30" rows="5"></textarea>
+        <textarea name="comment" id="comment" cols="30" rows="5"></textarea>
       </div>
-      <input type="submit" value="Submit">
+      <!-- <input type="submit" value="Submit"> -->
     </form>
+    <button onclick="main()">Submit</button>
   </div>
   <div class="comments">
     <table>
@@ -32,7 +34,7 @@
         <th>User</th>
         <th>Comment</th>
       </thead>
-      <tbody>
+      <tbody id="tbody">
         _COMMENTS_
       </tbody>
     </table>

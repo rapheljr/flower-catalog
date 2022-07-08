@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { Comments } = require('./comments.js');
+const { injectSession, createSession, injectCookies, setCookie, sessions } = require('./cookie.js');
 const mime = require('mime-types');
 
 const serveFile = (file, res, next) => {
@@ -40,6 +41,7 @@ const loginHandler = (req, res, next) => {
 const logoutHandler = (req, res, next) => {
   const { pathname } = req.url;
   if (pathname === '/logout') {
+    delete sessions[req.cookies.id];
     res.setHeader('set-cookie', 'id=0;max-age=0');
     redirectPage(res, '/');
     return true;
@@ -99,7 +101,9 @@ const apiHandler = ({ url }, res, next) => {
 };
 
 const handleComments = (req) => {
-  const comment = req.bodyParams.get('comment');
+  const { searchParams } = req.url;
+  // const comment = req.bodyParams.get('comment');
+  const comment = searchParams.get('comment');
   const { name } = req.session;
   console.log(name, comment);
   writeComment(name, comment);
@@ -146,59 +150,21 @@ const makeContent = (file, name) => {
   return html;
 };
 
+const dataHandler = (req, res, next) => {
+  const { pathname } = req.url;
+  if (pathname === '/data') {
+    handleComments(req, res);
+    res.end(readComment());
+    return true;
+  }
+  return next();
+};
+
 const notFoundHandler = ({ url }, res) => {
   const { pathname } = url;
   res.statusCode = 404;
   res.end(pathname + ' not found');
   return true;
-};
-
-const sessions = {};
-
-const createSession = (req) => {
-  const name = req.bodyParams.get('name');
-  const time = new Date();
-  const id = time.getTime();
-
-  const session = { name, id, time };
-  sessions[id] = session;
-  return session;
-};
-
-const injectSession = (req, res, next) => {
-  const { id } = req.cookies;
-  if (!id) {
-    return next();
-  }
-  req.session = sessions[id];
-  return next();
-};
-
-const cookieParser = (cookie) => {
-  const cookies = {};
-  if (!cookie) {
-    return cookies;
-  }
-  cookie.split(';').forEach(cookieString => {
-    const [name, value] = cookieString.split('=');
-    cookies[name.trim()] = value.trim();
-  });
-  return cookies;
-};
-
-const getName = (req) => {
-  console.log(sessions, req.cookies.id);
-  return sessions[req.cookies.id].name;
-};
-
-const setCookie = (res, id) => {
-  res.setHeader('set-cookie', 'id=' + id);
-  return true;
-};
-
-const injectCookies = (req, res, next) => {
-  req.cookies = cookieParser(req.headers.cookie);
-  return next();
 };
 
 const log = (req, res, next) => {
@@ -209,6 +175,6 @@ const log = (req, res, next) => {
 };
 
 module.exports = {
-  serveFileContents, guestBookHandler, injectSession, bodyParser, injectCookies, setCookie, handleSession,
-  apiHandler, notFoundHandler, loginHandler, logoutHandler, log
+  serveFileContents, guestBookHandler, bodyParser, handleSession,
+  apiHandler, notFoundHandler, loginHandler, logoutHandler, log, dataHandler
 };
