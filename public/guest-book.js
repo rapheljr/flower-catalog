@@ -1,7 +1,9 @@
 const main = () => {
   const XHR = new XMLHttpRequest();
   const comment = document.getElementById('comment');
-  const path = `/data?comment=${comment.value}`;
+  const avatar = document.getElementById('avatar');
+  console.log(avatar);
+  const path = `/data?comment=${comment.value}&avatar=${avatar.value}`;
   console.log(path);
   XHR.open('GET', path);
   XHR.send();

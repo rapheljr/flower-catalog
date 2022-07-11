@@ -25,22 +25,17 @@ const bodyParser = (req, res, next) => {
 };
 
 const loginHandler = (req, res, next) => {
-  const { pathname } = req.url;
-  const { method } = req;
-  if (pathname === '/login') {
-    if (method === 'POST') {
-      const { id } = createSession(req);
-      setCookie(res, id);
-      redirectPage(res, '/guest-book.html');
-    }
+  if (req.matches('POST', '/login')) {
+    const { id } = createSession(req);
+    setCookie(res, id);
+    redirectPage(res, '/guest-book.html');
     return true;
   }
   return next();
 };
 
 const logoutHandler = (req, res, next) => {
-  const { pathname } = req.url;
-  if (pathname === '/logout') {
+  if (req.matches('GET', '/logout')) {
     delete sessions[req.cookies.id];
     res.setHeader('set-cookie', 'id=0;max-age=0');
     redirectPage(res, '/');
@@ -51,7 +46,7 @@ const logoutHandler = (req, res, next) => {
 
 const serveFileContents = (req, res, next, path = './public') => {
   let { pathname } = req.url;
-  if (pathname === '/') {
+  if (req.matches('GET', '/')) {
     pathname = '/home.html';
   }
   return serveFile(path + pathname, res, next);
@@ -90,9 +85,9 @@ const getParams = (params) => {
   return [name, comment];
 };
 
-const apiHandler = ({ url }, res, next) => {
-  const { searchParams, pathname } = url;
-  if (pathname === '/api') {
+const apiHandler = (req, res, next) => {
+  const { searchParams } = req.url;
+  if (req.matches('GET', '/api')) {
     const [name, comment] = getParams(searchParams);
     res.end(filterComments(name, comment));
     return true;
@@ -109,32 +104,12 @@ const handleComments = (req) => {
   writeComment(name, comment);
 };
 
-const handleSession = (req, res, next) => {
-  const { pathname } = req.url;
-  const { method } = req;
-  if (pathname === '/guest-book.html') {
-    if (method === 'POST') {
-      handleComments(req, res);
-    } else {
-      return redirectPage(res, '/login.html');
-    }
-    const { name } = req.session;
-    res.end(makeContent('./public' + pathname, name));
-    return true;
-  }
-  return next();
-};
-
 const guestBookHandler = (req, res, next) => {
-  const { pathname } = req.url;
-  const { method } = req;
-  if (pathname === '/guest-book.html') {
-    if (method === 'POST') {
-      handleComments(req, res);
-      redirectPage(res, '/guest-book.html');
-    } else if (req.session) {
+  if (req.matches('GET', '/guest-book.html')) {
+    if (req.session) {
       const { name } = req.session;
-      res.end(makeContent('./public' + pathname, name));
+      const { pathname } = req.url;
+      res.end(makeContent(pathname, name));
     } else {
       redirectPage(res, '/login.html');
     }
@@ -144,15 +119,14 @@ const guestBookHandler = (req, res, next) => {
 };
 
 const makeContent = (file, name) => {
-  const content = fs.readFileSync(file, 'utf-8');
+  const content = fs.readFileSync('./public' + file, 'utf-8');
   let html = content.replaceAll('_COMMENTS_', readComment());
   html = html.replaceAll('_USER_', name);
   return html;
 };
 
 const dataHandler = (req, res, next) => {
-  const { pathname } = req.url;
-  if (pathname === '/data') {
+  if (req.matches('GET', '/data')) {
     handleComments(req, res);
     res.end(readComment());
     return true;
@@ -175,6 +149,6 @@ const log = (req, res, next) => {
 };
 
 module.exports = {
-  serveFileContents, guestBookHandler, bodyParser, handleSession,
+  serveFileContents, guestBookHandler, bodyParser,
   apiHandler, notFoundHandler, loginHandler, logoutHandler, log, dataHandler
 };
