@@ -44,12 +44,14 @@ const logoutHandler = (req, res, next) => {
   return next();
 };
 
-const serveFileContents = (req, res, next, path = './public') => {
-  let { pathname } = req.url;
-  if (req.matches('GET', '/')) {
-    pathname = '/home.html';
+const serveFileContents = (path = './public') => {
+  return (req, res, next) => {
+    let { pathname } = req.url;
+    if (req.matches('GET', '/')) {
+      pathname = '/home.html';
+    }
+    return serveFile(path + pathname, res, next);
   }
-  return serveFile(path + pathname, res, next);
 };
 
 const writeComment = (name, text) => {
@@ -147,7 +149,9 @@ const log = (req, res, next) => {
   return next();
 };
 
+const noOp = (req, res, next) => next();
+
 module.exports = {
-  serveFileContents, guestBookHandler, bodyParser,
+  serveFileContents, guestBookHandler, bodyParser, noOp,
   apiHandler, notFoundHandler, loginHandler, logoutHandler, log, dataHandler
 };
