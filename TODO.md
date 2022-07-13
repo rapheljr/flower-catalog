@@ -2,6 +2,7 @@
 
 - [ ] Refer README.md
 - [ ] Look up todo frequently
+- [ ] Test the app with supertest
 - [ ] Refactor code
 
 **DONE**

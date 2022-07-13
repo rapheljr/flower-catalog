@@ -24,6 +24,7 @@
   "dependencies": {
     "mime-types": "^2.1.35",
     "nodemon": "^2.0.18",
-    "server": "github:rapheljr/my-server"
+    "server": "github:rapheljr/my-server",
+    "supertest": "^6.2.4"
   }
 }

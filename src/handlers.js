@@ -97,7 +97,6 @@ const apiHandler = (req, res, next) => {
 
 const handleComments = (req) => {
   const { searchParams } = req.url;
-  // const comment = req.bodyParams.get('comment');
   const comment = searchParams.get('comment');
   const { name } = req.session;
   console.log(name, comment);
