@@ -8,8 +8,8 @@ const createSession = (req, sessions) => {
   return session;
 };
 
-const injectSession = (sessions) => {
-  return (req, res, next) => {
+const injectSession = (sessions) =>
+  (req, res, next) => {
     const { id } = req.cookies;
     if (!id) {
       return next();
@@ -17,7 +17,6 @@ const injectSession = (sessions) => {
     req.session = sessions[id];
     return next();
   };
-};
 
 const cookieParser = (cookie) => {
   const cookies = {};

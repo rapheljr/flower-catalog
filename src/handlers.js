@@ -99,8 +99,8 @@ const apiHandler = (req, res, next) => {
 };
 
 const handleComments = (req) => {
-  const { searchParams } = req.url;
-  const comment = searchParams.get('comment');
+  const { bodyParams } = req;
+  const comment = bodyParams.get('comment');
   const { name } = req.session;
   console.log(name, comment);
   writeComment(name, comment);
@@ -127,8 +127,8 @@ const makeContent = (file, name) => {
   return html;
 };
 
-const dataHandler = (req, res, next) => {
-  if (req.matches('GET', '/data')) {
+const commentHandler = (req, res, next) => {
+  if (req.matches('POST', '/comment')) {
     handleComments(req, res);
     res.end(readComment());
     return true;
@@ -151,9 +151,7 @@ const log = (sessions) =>
     return next();
   };
 
-const noOp = (req, res, next) => next();
-
 module.exports = {
-  serveFileContents, guestBookHandler, bodyParser, noOp,
-  apiHandler, notFoundHandler, loginHandler, logoutHandler, log, dataHandler
+  serveFileContents, guestBookHandler, bodyParser,
+  apiHandler, notFoundHandler, loginHandler, logoutHandler, log, commentHandler
 };
