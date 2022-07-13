@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { Comments } = require('./comments.js');
-const { injectSession, createSession, injectCookies, setCookie, sessions } = require('./cookie.js');
+const { createSession, setCookie } = require('./cookie.js');
 const mime = require('mime-types');
 
 const serveFile = (file, res, next) => {
@@ -24,35 +24,36 @@ const bodyParser = (req, res, next) => {
   });
 };
 
-const loginHandler = (req, res, next) => {
-  if (req.matches('POST', '/login')) {
-    const { id } = createSession(req);
-    setCookie(res, id);
-    redirectPage(res, '/guest-book.html');
-    return true;
-  }
-  return next();
-};
+const loginHandler = (sessions) =>
+  (req, res, next) => {
+    if (req.matches('POST', '/login')) {
+      const { id } = createSession(req, sessions);
+      setCookie(res, id);
+      redirectPage(res, '/guest-book.html');
+      return true;
+    }
+    return next();
+  };
 
-const logoutHandler = (req, res, next) => {
-  if (req.matches('GET', '/logout')) {
-    delete sessions[req.cookies.id];
-    res.setHeader('set-cookie', 'id=0;max-age=0');
-    redirectPage(res, '/');
-    return true;
-  }
-  return next();
-};
+const logoutHandler = (sessions) =>
+  (req, res, next) => {
+    if (req.matches('GET', '/logout')) {
+      delete sessions[req.cookies.id];
+      res.setHeader('set-cookie', 'id=0;max-age=0');
+      redirectPage(res, '/');
+      return true;
+    }
+    return next();
+  };
 
-const serveFileContents = (path = './public') => {
-  return (req, res, next) => {
+const serveFileContents = (path = './public') =>
+  (req, res, next) => {
     let { pathname } = req.url;
     if (req.matches('GET', '/')) {
       pathname = '/home.html';
     }
     return serveFile(path + pathname, res, next);
-  }
-};
+  };
 
 const writeComment = (name, text) => {
   const comment = new Comments('./data/comments.json');
@@ -142,12 +143,13 @@ const notFoundHandler = ({ url }, res) => {
   return true;
 };
 
-const log = (req, res, next) => {
-  console.log(req.bodyParams, 'bodyParams');
-  console.log(req.cookies, 'cookies');
-  console.log(sessions, 'sessions');
-  return next();
-};
+const log = (sessions) =>
+  (req, res, next) => {
+    console.log(req.bodyParams, 'bodyParams');
+    console.log(req.cookies, 'cookies');
+    console.log(sessions, 'sessions');
+    return next();
+  };
 
 const noOp = (req, res, next) => next();
 

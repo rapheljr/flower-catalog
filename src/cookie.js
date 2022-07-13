@@ -1,7 +1,4 @@
-
-const sessions = {};
-
-const createSession = (req) => {
+const createSession = (req, sessions) => {
   const name = req.bodyParams.get('name');
   const time = new Date();
   const id = time.getTime();
@@ -11,13 +8,15 @@ const createSession = (req) => {
   return session;
 };
 
-const injectSession = (req, res, next) => {
-  const { id } = req.cookies;
-  if (!id) {
+const injectSession = (sessions) => {
+  return (req, res, next) => {
+    const { id } = req.cookies;
+    if (!id) {
+      return next();
+    }
+    req.session = sessions[id];
     return next();
-  }
-  req.session = sessions[id];
-  return next();
+  };
 };
 
 const cookieParser = (cookie) => {
@@ -43,5 +42,5 @@ const injectCookies = (req, res, next) => {
 };
 
 module.exports = {
-  injectSession, injectCookies, setCookie, sessions, createSession
+  injectSession, injectCookies, setCookie, createSession
 };

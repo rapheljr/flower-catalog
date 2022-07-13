@@ -1,5 +1,5 @@
 const request = require('supertest');
-const { app } = require('../src/app');
+const { app } = require('../src/app.js');
 
 describe('app', () => {
   it('should give status code of 200 for /', (done) => {
@@ -45,5 +45,18 @@ describe('app', () => {
       .expect('location', '/')
       .expect(302, done)
   });
+
+  it('should give status code 404 for /a file not found', (done) => {
+    request(app)
+      .get('/a')
+      .expect(404, done)
+  });
+
+  // it('should give status code 404 for /a', (done) => {
+  //   request(app)
+  //     .get('/data')
+  //     .send
+  //     .expect(404, done)
+  // });
 
 });
