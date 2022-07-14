@@ -22,9 +22,8 @@
   },
   "homepage": "https://github.com/rapheljr/flower-catalog#readme",
   "dependencies": {
-    "mime-types": "^2.1.35",
+    "express": "^4.18.1",
     "nodemon": "^2.0.18",
-    "server": "github:rapheljr/my-server",
     "supertest": "^6.2.4"
   }
 }

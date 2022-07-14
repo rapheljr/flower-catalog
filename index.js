@@ -1,4 +1,9 @@
-const { startServer } = require('server');
-const { app } = require('./src/app.js');
+const { createApp } = require('./src/app.js');
 
-startServer(8000, app());
+const main = () => {
+  const app = createApp();
+  const PORT = 8000;
+  app.listen(PORT, () => console.log('starts listening', PORT))
+};
+
+main();
