@@ -1,27 +1,28 @@
 const fs = require('fs');
 
-class Comments {
+class GuestBook {
   #file;
-  constructor(file) {
+  #readFile;
+  #writeFile;
+  #comments;
+  constructor(file, readFile, writeFile) {
     this.#file = file;
-  }
-
-  #addToFile(comment) {
-    const comments = JSON.parse(fs.readFileSync(this.#file, 'utf-8'));
-    comments.unshift(comment);
-    fs.writeFileSync(this.#file, JSON.stringify(comments), 'utf-8');
+    this.#readFile = readFile;
+    this.#writeFile = writeFile;
+    this.#comments = JSON.parse(this.#readFile(this.#file, 'utf-8'));
   }
 
   addComment(name, text) {
     const date = new Date();
     const comment = { date: date.toLocaleString(), name, text };
     if (name && text) {
-      this.#addToFile(comment);
+      this.#comments.unshift(comment);
+      this.#writeFile(this.#file, JSON.stringify(this.#comments), 'utf-8');
     }
   }
 
   getComments() {
-    return JSON.parse(fs.readFileSync(this.#file, 'utf-8'));
+    return JSON.parse(this.#readFile(this.#file, 'utf-8'));
   }
 
   toHtmlList() {
@@ -42,4 +43,4 @@ class Comments {
 
 }
 
-module.exports = { Comments };
+module.exports = { GuestBook };

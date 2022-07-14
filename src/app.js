@@ -1,10 +1,13 @@
 const { createRouter } = require('server');
+const fs = require('fs');
 
 const { injectCookies, injectSession } = require('./cookie.js');
-const { serveFileContents, bodyParser, guestBookHandler, log, loginHandler, commentHandler, apiHandler, notFoundHandler, logoutHandler } = require('./handlers.js');
+const { serveFileContents, bodyParser, guestBookHandler, log, loginHandler, commentHandler, apiHandler, injectComments, notFoundHandler, logoutHandler } = require('./handlers.js');
 
-const app = (path = './public', sessions = {}, logger = log) => {
-  const handlers = [bodyParser, injectCookies, injectSession(sessions), guestBookHandler, logger(sessions), loginHandler(sessions), logoutHandler(sessions), commentHandler, serveFileContents(path), apiHandler, notFoundHandler];
+const comments = injectComments('./data/comments.json', fs.readFileSync, fs.writeFileSync);
+
+const app = (logger = log, sessions = {}, path = './public') => {
+  const handlers = [bodyParser, injectCookies, injectSession(sessions), comments, guestBookHandler, logger(sessions), loginHandler(sessions), logoutHandler(sessions), commentHandler, serveFileContents(path), apiHandler, notFoundHandler];
   return createRouter(handlers);
 };
 

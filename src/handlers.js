@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { Comments } = require('./comments.js');
+const { GuestBook } = require('./comments.js');
 const { createSession, setCookie } = require('./cookie.js');
 const mime = require('mime-types');
 
@@ -13,6 +13,12 @@ const serveFile = (file, res, next) => {
   }
   return next();
 };
+
+const injectComments = (file, readFile, writeFile) =>
+  (req, res, next) => {
+    req.comments = new GuestBook(file, readFile, writeFile);
+    return next();
+  };
 
 const bodyParser = (req, res, next) => {
   let data = '';
@@ -55,19 +61,8 @@ const serveFileContents = (path = './public') =>
     return serveFile(path + pathname, res, next);
   };
 
-const writeComment = (name, text) => {
-  const comment = new Comments('./data/comments.json');
-  comment.addComment(name, text);
-};
-
-const readComment = () => {
-  const comments = new Comments('./data/comments.json');
-  return comments.toHtmlTable();
-};
-
-const filterComments = (user, comment) => {
-  const comments = new Comments('./data/comments.json');
-  const filtered = comments.getComments().filter(({ name, text }) => {
+const filterComments = (req, user, comment) => {
+  const filtered = req.comments.getComments().filter(({ name, text }) => {
     return name.includes(user) || text.includes(comment);
   }
   );
@@ -92,7 +87,7 @@ const apiHandler = (req, res, next) => {
   const { searchParams } = req.url;
   if (req.matches('GET', '/api')) {
     const [name, comment] = getParams(searchParams);
-    res.end(filterComments(name, comment));
+    res.end(filterComments(req, name, comment));
     return true;
   }
   return next();
@@ -103,7 +98,7 @@ const handleComments = (req) => {
   const comment = bodyParams.get('comment');
   const { name } = req.session;
   console.log(name, comment);
-  writeComment(name, comment);
+  req.comments.addComment(name, comment);
 };
 
 const guestBookHandler = (req, res, next) => {
@@ -111,7 +106,7 @@ const guestBookHandler = (req, res, next) => {
     if (req.session) {
       const { name } = req.session;
       const { pathname } = req.url;
-      res.end(makeContent(pathname, name));
+      res.end(makeContent(req, pathname, name));
     } else {
       redirectPage(res, '/login.html');
     }
@@ -120,9 +115,9 @@ const guestBookHandler = (req, res, next) => {
   return next();
 };
 
-const makeContent = (file, name) => {
+const makeContent = (req, file, name) => {
   const content = fs.readFileSync('./public' + file, 'utf-8');
-  let html = content.replaceAll('_COMMENTS_', readComment());
+  let html = content.replaceAll('_COMMENTS_', req.comments.toHtmlTable());
   html = html.replaceAll('_USER_', name);
   return html;
 };
@@ -130,7 +125,7 @@ const makeContent = (file, name) => {
 const commentHandler = (req, res, next) => {
   if (req.matches('POST', '/comment')) {
     handleComments(req, res);
-    res.end(readComment());
+    res.end(req.comments.toHtmlTable());
     return true;
   }
   return next();
@@ -152,6 +147,6 @@ const log = (sessions) =>
   };
 
 module.exports = {
-  serveFileContents, guestBookHandler, bodyParser,
+  serveFileContents, guestBookHandler, bodyParser, injectComments,
   apiHandler, notFoundHandler, loginHandler, logoutHandler, log, commentHandler
 };
