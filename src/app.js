@@ -1,13 +1,16 @@
-const fs = require('fs');
 const express = require('express');
 
 const { injectCookies, injectSession } = require('./cookie.js');
-const { serveFileContents, bodyParser, guestBookHandler, log, loginHandler, commentHandler, apiHandler, injectComments, logoutHandler } = require('./handlers.js');
+const { bodyParser, guestBookHandler, log, loginHandler, commentHandler, apiHandler, injectComments, logoutHandler } = require('./handlers.js');
 
-const comments = injectComments('./data/comments.json', fs.readFileSync, fs.writeFileSync);
 
-const createApp = (logger = log, sessions = {}, path = './public') => {
+const createApp = (config, logger = log, sessions = {}) => {
+  const { path, file, read, write } = config;
+
+  const comments = injectComments(file, read, write);
+
   const app = express();
+
   app.use(bodyParser);
   app.use(injectCookies);
   app.use(injectSession(sessions));
@@ -17,7 +20,6 @@ const createApp = (logger = log, sessions = {}, path = './public') => {
   app.post('/login', loginHandler(sessions));
   app.get('/logout', logoutHandler(sessions));
   app.post('/comment', commentHandler);
-  app.get('/', serveFileContents(path));
   app.get('/api', apiHandler);
   app.use(express.static(path));
 

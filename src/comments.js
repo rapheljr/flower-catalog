@@ -2,14 +2,14 @@ const fs = require('fs');
 
 class GuestBook {
   #file;
-  #readFile;
-  #writeFile;
+  #read;
+  #write;
   #comments;
   constructor(file, readFile, writeFile) {
     this.#file = file;
-    this.#readFile = readFile;
-    this.#writeFile = writeFile;
-    this.#comments = JSON.parse(this.#readFile(this.#file, 'utf-8'));
+    this.#read = readFile;
+    this.#write = writeFile;
+    this.#comments = JSON.parse(this.#read(this.#file, 'utf-8'));
   }
 
   addComment(name, text) {
@@ -17,12 +17,12 @@ class GuestBook {
     const comment = { date: date.toLocaleString(), name, text };
     if (name && text) {
       this.#comments.unshift(comment);
-      this.#writeFile(this.#file, JSON.stringify(this.#comments), 'utf-8');
+      this.#write(this.#file, JSON.stringify(this.#comments), 'utf-8');
     }
   }
 
   getComments() {
-    return JSON.parse(this.#readFile(this.#file, 'utf-8'));
+    return JSON.parse(this.#read(this.#file, 'utf-8'));
   }
 
   toHtmlList() {
